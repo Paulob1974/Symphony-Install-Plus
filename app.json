@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Symphony Install+",
+    "slug": "symphony-install-plus",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.symphony.installplus",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Symphony Install+ uses the camera to record installation and issue photos.",
+        "NSPhotoLibraryUsageDescription": "Symphony Install+ uses your photo library to attach installation and issue photos."
+      }
+    },
+    "android": {
+      "package": "com.symphony.installplus",
+      "permissions": [
+        "CAMERA"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Allow Symphony Install+ to take installation photos.",
+          "photosPermission": "Allow Symphony Install+ to select installation photos."
+        }
+      ]
+    ]
+  }
+}
