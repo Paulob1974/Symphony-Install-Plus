@@ -17,10 +17,11 @@ body{margin:0;background:#fff;color:#182b3f}
 <div id="report"></div>
 <script>
 (function(){
-  const raw=localStorage.getItem('sym-install-print-data');
+  const raw=window.name;
   if(!raw){document.getElementById('report').innerHTML='<p style="padding:20px">No report is available to print. Please return to Symphony Install+ and create the report again.</p>';return;}
   try{
     const data=JSON.parse(raw);
+    window.name='';
     if(data.styles) document.head.insertAdjacentHTML('beforeend',data.styles);
     document.getElementById('report').innerHTML=data.body||'';
   }catch(e){
