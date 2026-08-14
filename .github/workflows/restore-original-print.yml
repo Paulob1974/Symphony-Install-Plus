@@ -1,0 +1,32 @@
+name: Restore Original Print
+on:
+  push:
+    paths:
+      - '.github/workflows/restore-original-print.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore original direct print button
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          old='<button onclick="printReport()">Print</button>'
+          new='<button onclick="window.print()">Print</button>'
+          if old not in s:
+              raise SystemExit('Current Print button not found')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+      - name: Commit change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Restore original iPhone print action"
+          git push
