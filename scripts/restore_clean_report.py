@@ -2,13 +2,14 @@ from pathlib import Path
 import re
 p=Path('index.html')
 s=p.read_text()
-old_controls='<div class=\\"controls\\"><button class=\\"share\\" onclick=\\"shareReport()\\">Share Report</button><button onclick=\\"openPrintPage()\\">Print</button><button onclick=\\"saveToDevice()\\">Save to Device</button><button onclick=\\"returnToApp()\\">Close</button></div>'
 new_controls='<div class=\\"controls\\"><button class=\\"share\\" onclick=\\"window.opener&&window.opener.shareGeneratedReport?window.opener.shareGeneratedReport(document.documentElement.outerHTML,\'${safe}\'):alert(\'Sharing is unavailable.\')\\">Share Report</button><button onclick=\\"window.print()\\">Print / Save as PDF</button><button onclick=\\"window.opener&&window.opener.saveGeneratedReport?window.opener.saveGeneratedReport(document.documentElement.outerHTML,\'${safe}\'):alert(\'Saving is unavailable.\')\\">Save to Device</button><button onclick=\\"window.close()\\">Close</button></div>'
-if old_controls not in s:
+controls_pattern=r'<div class=\\"controls\\"><button class=\\"share\\".*?</div>'
+s2,n=re.subn(controls_pattern,new_controls,s,count=1,flags=re.S)
+if n!=1:
     raise SystemExit('Expected report controls not found; refusing to alter file')
-s=s.replace(old_controls,new_controls,1)
-pattern=r'<script>function printReport\(\)\{.*?<\\/script>'
-s2,n=re.subn(pattern,'',s,count=1,flags=re.S)
+s=s2
+script_pattern=r'<script>function printReport\(\)\{.*?<\\/script>'
+s2,n=re.subn(script_pattern,'',s,count=1,flags=re.S)
 if n!=1:
     raise SystemExit('Embedded report script not found; refusing to alter file')
 s=s2
