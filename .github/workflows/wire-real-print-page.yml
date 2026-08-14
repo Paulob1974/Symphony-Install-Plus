@@ -1,0 +1,34 @@
+name: Wire Real Print Page
+on: workflow_dispatch
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch Print button only
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          old='<button onclick=\\"printViaShare()\\">Print</button>'
+          new='<button onclick=\\"openPrintPage()\\">Print</button>'
+          if old not in s:
+              raise SystemExit('Current Print button not found; refusing to alter file')
+          s=s.replace(old,new,1)
+          marker='async function printViaShare(){'
+          fn="function openPrintPage(){try{const clone=document.documentElement.cloneNode(true),c=clone.querySelector('.controls');if(c)c.remove();clone.querySelectorAll('script').forEach(s=>s.remove());const styles=Array.from(document.querySelectorAll('style')).map(s=>s.outerHTML).join('');const body=clone.body.innerHTML;localStorage.setItem('sym-install-print-data',JSON.stringify({styles:styles,body:body}));location.href='https://paulob1974.github.io/Symphony-Install-Plus/print.html'}catch(e){alert('The print view could not be opened.')}}"
+          if marker not in s:
+              raise SystemExit('Print script marker not found; refusing to alter file')
+          s=s.replace(marker,fn+marker,1)
+          p.write_text(s)
+          PY
+      - name: Commit change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Route Print through dedicated print page" || exit 0
+          git push
