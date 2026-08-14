@@ -1,0 +1,48 @@
+name: Fix PDF download
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-pdf-download.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch PDF button only
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          old_head = '<title>Symphony Install+ Report</title><style>'
+          new_head = '<title>Symphony Install+ Report</title><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script><style>'
+          if old_head not in s:
+              raise SystemExit('Report head marker not found')
+          s = s.replace(old_head, new_head, 1)
+
+          old_button = '<button onclick="printReport()">Print / Save as PDF</button>'
+          new_button = '<button onclick="savePdfReport()">Save as PDF</button>'
+          if old_button not in s:
+              raise SystemExit('PDF button marker not found')
+          s = s.replace(old_button, new_button, 1)
+
+          old_fn = "function printReport(){window.focus();setTimeout(function(){try{window.print()}catch(e){alert('Use your browser menu and choose Print / Save as PDF.')}},150)}"
+          new_fn = "async function savePdfReport(){const c=document.querySelector('.controls');try{if(typeof html2pdf==='undefined'){alert('PDF maker is still loading. Please wait a moment and try again.');return}if(c)c.style.display='none';const opt={margin:8,filename:'Symphony-Install-Report-${safe}.pdf',image:{type:'jpeg',quality:0.95},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['avoid-all','css','legacy']}};await html2pdf().set(opt).from(document.body).save()}catch(e){alert('The PDF could not be created on this browser.')}finally{if(c)c.style.display='flex'}}"
+          if old_fn not in s:
+              raise SystemExit('Print function marker not found')
+          s = s.replace(old_fn, new_fn, 1)
+
+          p.write_text(s, encoding='utf-8')
+      - name: Commit change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Make completed report download as PDF"
+          git push
