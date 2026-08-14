@@ -7,24 +7,20 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Patch Print button only
+      - name: Patch Print handoff only
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re
           p=Path('index.html')
           s=p.read_text()
-          if 'openPrintPage()' not in s:
-              s2,n=re.subn(r'printViaShare\(\)(\\?")>Print',r'openPrintPage()\1>Print',s,count=1)
-              if n!=1:
-                  raise SystemExit('Current Print button not found; refusing to alter file')
-              s=s2
-          marker='async function printViaShare(){'
-          fn="function openPrintPage(){try{const clone=document.documentElement.cloneNode(true),c=clone.querySelector('.controls');if(c)c.remove();clone.querySelectorAll('script').forEach(s=>s.remove());const styles=Array.from(document.querySelectorAll('style')).map(s=>s.outerHTML).join('');const body=clone.body.innerHTML;localStorage.setItem('sym-install-print-data',JSON.stringify({styles:styles,body:body}));location.href='https://paulob1974.github.io/Symphony-Install-Plus/print.html'}catch(e){alert('The print view could not be opened.')}}"
-          if 'function openPrintPage(){' not in s:
-              if marker not in s:
-                  raise SystemExit('Print script marker not found; refusing to alter file')
-              s=s.replace(marker,fn+marker,1)
+          old="function openPrintPage(){try{const clone=document.documentElement.cloneNode(true),c=clone.querySelector('.controls');if(c)c.remove();clone.querySelectorAll('script').forEach(s=>s.remove());const styles=Array.from(document.querySelectorAll('style')).map(s=>s.outerHTML).join('');const body=clone.body.innerHTML;localStorage.setItem('sym-install-print-data',JSON.stringify({styles:styles,body:body}));location.href='https://paulob1974.github.io/Symphony-Install-Plus/print.html'}catch(e){alert('The print view could not be opened.')}}"
+          new="function openPrintPage(){try{const clone=document.documentElement.cloneNode(true),c=clone.querySelector('.controls');if(c)c.remove();clone.querySelectorAll('script').forEach(s=>s.remove());const styles=Array.from(document.querySelectorAll('style')).map(s=>s.outerHTML).join('');const body=clone.body.innerHTML;window.name=JSON.stringify({styles:styles,body:body});location.href='https://paulob1974.github.io/Symphony-Install-Plus/print.html'}catch(e){alert('The print view could not be opened.')}}"
+          if new in s:
+              print('Print handoff already updated')
+          elif old in s:
+              s=s.replace(old,new,1)
+          else:
+              raise SystemExit('Existing print handoff not found; refusing to alter file')
           p.write_text(s)
           PY
       - name: Commit change
@@ -32,5 +28,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git commit -m "Route Print through dedicated print page" || exit 0
+          git commit -m "Fix iPhone print handoff" || exit 0
           git push
