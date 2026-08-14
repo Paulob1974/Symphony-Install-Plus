@@ -1,0 +1,30 @@
+name: Enable same-page report
+on:
+  push:
+    paths:
+      - '.github/workflows/enable-same-page-report.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add report controls script
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          tag='<script src="report-controls.js"></script>'
+          if tag not in s:
+              s=s.replace('</body></html>', tag+'</body></html>')
+              p.write_text(s,encoding='utf-8')
+      - name: Commit change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Enable same-page completed report"
+          git push
