@@ -1,5 +1,8 @@
 name: Restore Clean Report Controls
-on: push
+on:
+  push:
+    paths:
+      - 'scripts/restore_clean_report.py'
 jobs:
   patch:
     runs-on: ubuntu-latest
