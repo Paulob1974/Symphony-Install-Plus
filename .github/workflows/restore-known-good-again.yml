@@ -1,0 +1,24 @@
+name: Restore known-good Symphony Install+
+on:
+  push:
+    paths:
+      - '.github/workflows/restore-known-good-again.yml'
+permissions:
+  contents: write
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore known-good index
+        run: |
+          git show 68e0a585803e13c31b981bfa34aeb2fe097c0c33 > index.html
+      - name: Commit restore
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Restore known-good Symphony Install+" || exit 0
+          git push
