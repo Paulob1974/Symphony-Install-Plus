@@ -1,0 +1,27 @@
+name: Restore last good Symphony Install+
+
+on:
+  push:
+    paths:
+      - '.github/workflows/restore-last-good.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore last working index
+        run: |
+          git show 2a330191b7ffc0dc1ed4a1b8c05ebaece0cefe21:index.html > index.html
+      - name: Commit restore
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Restore last working report version"
+          git push
