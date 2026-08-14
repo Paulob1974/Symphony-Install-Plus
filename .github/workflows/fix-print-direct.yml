@@ -1,0 +1,31 @@
+name: Fix Print Direct
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-print-direct.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch print function only
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old = "function printReport(){window.focus();setTimeout(function(){try{window.print()}catch(e){alert('Use your browser menu and choose Print.')}},150)}"
+          new = "function printReport(){const c=document.querySelector('.controls');try{window.focus();if(c)c.style.display='none';window.print()}catch(e){alert('Use your browser menu and choose Print.')}finally{setTimeout(function(){if(c)c.style.display='flex'},500)}}"
+          if old not in s:
+              raise SystemExit('Expected print function not found; refusing to change anything else.')
+          s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+      - name: Commit change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Fix mobile print tap handling"
+          git push
