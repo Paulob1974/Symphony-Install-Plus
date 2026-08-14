@@ -1,5 +1,5 @@
 name: Wire Real Print Page
-on: workflow_dispatch
+on: push
 jobs:
   patch:
     runs-on: ubuntu-latest
